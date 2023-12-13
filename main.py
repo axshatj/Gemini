@@ -21,7 +21,7 @@ def handle_message():
 
 def process_image(uploaded_file,vision_chat):
     img = PIL.Image.open(uploaded_file)
-    response = vision_chat.generate_content(img,
+    response = vision_model.generate_content(img,
                                              safety_settings={'HARASSMENT': 'block_none'},
                                              generation_config=genai.types.GenerationConfig(
                                              max_output_tokens=4000,
