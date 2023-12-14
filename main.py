@@ -22,7 +22,21 @@ def handle_message():
 def process_image(uploaded_file,vision_chat):
     img = PIL.Image.open(uploaded_file)
     response = vision_model.generate_content(img,
-                                             safety_settings={'HARASSMENT': 'block_none'},
+                                             safety_settings=[{"category": "HARM_CATEGORY_HARASSMENT",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              {
+                                                               "category": "HARM_CATEGORY_HATE_SPEECH",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              {
+                                                               "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              ],
                                              generation_config=genai.types.GenerationConfig(
                                              max_output_tokens=4000,
                                              temperature=0.7)
@@ -31,7 +45,21 @@ def process_image(uploaded_file,vision_chat):
 
 def process_text(input_text,text_chat):
     response = text_chat.send_message(input_text,
-                                      safety_settings={'HARASSMENT': 'block_none'},
+                                      safety_settings=[{"category": "HARM_CATEGORY_HARASSMENT",
+                                                        "threshold": "BLOCK_NONE",
+                                                       },
+                                                              {
+                                                               "category": "HARM_CATEGORY_HATE_SPEECH",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              {
+                                                               "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                                               "threshold": "BLOCK_NONE",
+                                                              },
+                                                              ],
                                       generation_config=genai.types.GenerationConfig(
                                       max_output_tokens=4000,
                                       temperature=0.9)
