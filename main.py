@@ -11,20 +11,14 @@ text_model = genai.GenerativeModel('gemini-pro')
 
 allowed_types = ["jpg", "png", "jpeg", "heic", "heif", "webp"]
 
+if 'vision_chat' not in st.session_state:
+    st.session_state.vision_chat = vision_model.start_chat(history=[])
 
-def handle_message():
-    vision_chat = vision_model.start_chat(history=[])
-    text_chat = text_model.start_chat(history=[])
-    if uploaded_file and send_button:
-        response_text = process_image(uploaded_file, vision_chat)
-        output_box.write(response_text)
-    elif input_box and send_button:
-        response_text = process_text(input_box, text_chat)
-        output_box.write(response_text)
-    # print(text_chat.history)
+if 'text_chat' not in st.session_state:
+    st.session_state.text_chat = text_model.start_chat(history=[])
 
 
-def process_image(uploaded_file, vision_chat):
+def process_image(uploaded_file):
     img = ""
     if uploaded_file.type == "image/heic" or uploaded_file.type == "image/heif":
         heif_file = pyheif.read(uploaded_file.read())
@@ -39,14 +33,15 @@ def process_image(uploaded_file, vision_chat):
     else:
         img = PIL.Image.open(uploaded_file)
     response = vision_model.generate_content(img,
-                                             safety_settings=[{"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE", },
-                                                              {"category": "HARM_CATEGORY_HATE_SPEECH",
-                                                                  "threshold": "BLOCK_NONE", },
-                                                              {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                                                                  "threshold": "BLOCK_NONE", },
-                                                              {"category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                                                                  "threshold": "BLOCK_NONE", },
-                                                              ],
+                                             safety_settings=[
+                                                 {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE", },
+                                                 {"category": "HARM_CATEGORY_HATE_SPEECH",
+                                                     "threshold": "BLOCK_NONE", },
+                                                 {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                                     "threshold": "BLOCK_NONE", },
+                                                 {"category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                                     "threshold": "BLOCK_NONE", },
+                                             ],
                                              generation_config=genai.types.GenerationConfig(
                                                  max_output_tokens=4000,
                                                  temperature=0.7)
@@ -54,20 +49,21 @@ def process_image(uploaded_file, vision_chat):
     return response.text
 
 
-def process_text(input_text, text_chat):
-    response = text_chat.send_message(input_text,
-                                      safety_settings=[{"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE", },
-                                                       {"category": "HARM_CATEGORY_HATE_SPEECH",
-                                                           "threshold": "BLOCK_NONE", },
-                                                       {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                                                           "threshold": "BLOCK_NONE", },
-                                                       {"category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                                                           "threshold": "BLOCK_NONE", },
+def process_text(input_text):
+    response = st.session_state.text_chat.send_message(input_text,
+                                                       safety_settings=[
+                                                           {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE", },
+                                                           {"category": "HARM_CATEGORY_HATE_SPEECH",
+                                                               "threshold": "BLOCK_NONE", },
+                                                           {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                                               "threshold": "BLOCK_NONE", },
+                                                           {"category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                                               "threshold": "BLOCK_NONE", },
                                                        ],
-                                      generation_config=genai.types.GenerationConfig(
-                                          max_output_tokens=4000,
-                                          temperature=0.9)
-                                      )
+                                                       generation_config=genai.types.GenerationConfig(
+                                                           max_output_tokens=4000,
+                                                           temperature=0.9)
+                                                       )
     return response.text
 
 
@@ -78,5 +74,9 @@ input_box = st.text_input("Your Message: ")
 send_button = st.button("Send")
 output_box = st.empty()
 
-if __name__ == "__main__":
-    handle_message()
+if uploaded_file and send_button:
+    response_text = process_image(uploaded_file)
+    output_box.write(response_text)
+elif input_box and send_button:
+    response_text = process_text(input_box)
+    output_box.write(response_text)
